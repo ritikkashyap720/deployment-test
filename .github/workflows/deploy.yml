@@ -1,0 +1,32 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      
+      - name: Add SSH Key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no jaatak@172.16.10.120"
+            cd ~/backend-server || { mkdir -p ~/backend-server; cd ~/backend-server; } &&
+            if [ -d .git ]; then
+              git pull
+            else
+              git clone https://github.com/ritikkashyap720/deployment-test.git .
+            fi &&
+            npm install &&
+            pm2 restart ecosystem.config.js || pm2 start index.js --name backend
+          "
